@@ -7,6 +7,57 @@ const jwt = require("jsonwebtoken");
 const message=require('../model/msg')
 const SecretKey="HareKrishna";
 
+routes.post('/checkemail',async(req,res)=>{
+  try{
+    const { email } = req.body;
+    const existingUser = await user.findOne({ email });
+  
+    if (!existingUser) return res.status(400).json({ message: "User not found" }); 
+    const otp=Math.floor(Math.random()*12345);
+    existingUser.otp=otp;
+    await existingUser.save();
+    const token=jwt.sign({email},SecretKey,{expiresIn:"2h"})
+    res.status(200).json( {token,otp} );
+  }
+  catch(err){
+    console.log(err);
+    res.status(500).send({message:err.message})
+    }
+    })
+
+    routes.post("/Otp",verifyToken,async(req,res)=>{
+      try{
+        const { otp } = req.body;
+        const {email}= req.user;
+        const existingUser = await user.findOne({ email });
+        if (!existingUser) return res.status(400).json({ message: "User not found" });
+          if(existingUser.otp!=otp){
+            return res.status(400).json({ message: "Invalid OTP" });
+            }
+            existingUser.otp=null;
+            await existingUser.save();
+            res.status(200).json({ email});
+            }
+            catch(err){
+              console.log(err);
+            }
+    })
+
+    routes.get("/Password",verifyToken,async(req,res)=>{
+      try{
+        const { password } = req.body;
+        const {email}= req.user.email;
+        const existingUser = await user.findOne({ email });
+        if (!existingUser) return res.status(400).json({ message: "User not found"});
+
+          existingUser.password=password;
+          await existingUser.save();
+          res.status(200).json({ message: "Password updated" });
+          }
+          catch(err){
+            console.log(err);
+          }
+    })
 routes.post("/deletemsg",async(req,res)=>{
   try{
     const{userid,selectid}=req.body;

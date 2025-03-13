@@ -28,6 +28,9 @@ const userschema = mongoose.Schema({
   time:{
     type:Date,
     default:"",
+  },
+  otp:{
+    type:Number,  
   }
 
 });
