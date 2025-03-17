@@ -43,10 +43,11 @@ routes.post('/checkemail',async(req,res)=>{
             }
     })
 
-    routes.get("/Password",verifyToken,async(req,res)=>{
+    routes.post("/Password",verifyToken,async(req,res)=>{
       try{
         const { password } = req.body;
-        const {email}= req.user.email;
+        const {email}= req.user;
+        console.log(password,"lllll");
         const existingUser = await user.findOne({ email });
         if (!existingUser) return res.status(400).json({ message: "User not found"});
 
@@ -56,6 +57,7 @@ routes.post('/checkemail',async(req,res)=>{
           }
           catch(err){
             console.log(err);
+            res.status(500).json({ message: "Internal Server Error" });
           }
     })
 routes.post("/deletemsg",async(req,res)=>{
@@ -133,16 +135,27 @@ routes.post('/signup',async(req,res)=>{
     res.status(201).json({ message: "User registered successfully" });
 })
 routes.post("/login", async (req, res) => {
-    const { email, password } = req.body;
-    const existingUser = await user.findOne({ email });
-  
-    if (!existingUser) return res.status(400).json({ message: "User not found" }); 
-  
-    if (existingUser.password !== password) return res.status(400).json({ message: "Invalid password" });
-    const token=jwt.sign({userId:existingUser.id},SecretKey,{expiresIn:"2h"})
-    
-    res.status(200).json({token}) ;
-  });
+  try {
+      const { email, password } = req.body;
+      const existingUser = await user.findOne({ email });
+
+      if (!existingUser) {
+          return res.status(400).json({ message: "User not found" });
+      }
+
+      if (existingUser.password !== password) {
+          return res.status(400).json({ message: "Invalid password" });
+      }
+
+      const token = jwt.sign({ userId: existingUser.id }, SecretKey, { expiresIn: "2h" });
+
+      res.status(200).json({ token });
+  } catch (err) {
+      console.error("Error in login:", err);
+      res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
   
     routes.get("/check-auth", verifyToken, (req, res) => {    
       res.status(200).json({ message: "Authenticated", userId: req.user.userId });

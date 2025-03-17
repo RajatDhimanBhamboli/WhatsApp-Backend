@@ -31,7 +31,7 @@ const upload=multer({
     },
     fileFilter:(req,file,cb)=>{
         const type=file.mimetype;
-        if(type=="image/jpeg"||type=="image/png"){
+        if(type=="image/jpeg"||type=="image/png"||type=="video/mp4"){
           cb(null,true);
           }
           else{
@@ -187,15 +187,17 @@ app.post("/dataupload/:userid/:selectid",upload.single("filehai"),async(req,res)
   const userid=req.params.userid;
   const selectid=req.params.selectid;
   const filepath=req.file.filename;
+  const mimetype=req.file.mimetype;
   console.log(filepath,"l");
   try{
-    const newMessage = new Message({ sender:userid, receiver:selectid, file:filepath });
+    const newMessage = new Message({ sender:userid, receiver:selectid, file:filepath ,media: mimetype === "video/mp4" ? "video" : "image"});
       await newMessage.save();
       const messageData = {
         sender: userid,
         receiver: selectid,
         file: filepath,
         createdAt: newMessage.createdAt,
+        
       };
   
       const receiverSocketId = userssocketid[selectid];
@@ -203,7 +205,7 @@ app.post("/dataupload/:userid/:selectid",upload.single("filehai"),async(req,res)
         io.to(receiverSocketId).emit("receiveMessage", messageData);
       }
   
-      res.json({ newMessage: messageData });
+      res.json({ newMessage: messageData,mimetype });
   }
   catch(err){
     console.log("Error saving file",err);

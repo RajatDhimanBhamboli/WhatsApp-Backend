@@ -19,6 +19,9 @@ const messageschema=new mongoose.Schema({
       seen:{
         type:Boolean,
         default:false,
+      },
+      media:{
+        type:String,
       }
       // status: {
       //   type: String,
